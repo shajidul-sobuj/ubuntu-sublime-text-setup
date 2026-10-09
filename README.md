@@ -1,140 +1,346 @@
-# Sublime Text Setup on Ubuntu
+# Sublime Text — Competitive Programming Setup on Ubuntu
 
-A clean, step-by-step guide to installing and managing **Sublime Text Stable** on Ubuntu using the official APT repository.
+A practical setup guide for using Sublime Text as a lightweight Competitive Programming (CP) editor on Ubuntu Linux.
 
-## Overview
+## Features
 
-- **Editor:** Sublime Text
-- **Operating System:** Ubuntu Linux
-- **Installation Method:** Official APT Repository
-- **Release Channel:** Stable
-- **Package Manager:** APT
+- Sublime Text Stable installation
+- C++17 compilation and execution
+- `input.txt` and `output.txt` file-based I/O
+- Custom Competitive Programming build system
+- Reusable C++ snippets
+- Fast workflow for Codeforces, CodeChef, AtCoder and other judges
 
-## 1. Add the Official GPG Signing Key
+## 1. Install Sublime Text Stable
 
-Download and register Sublime Text's repository signing key:
+### Add the official signing key
 
 ```bash
 wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg \
   | sudo tee /etc/apt/keyrings/sublimehq-pub.asc > /dev/null
 ```
 
-## 2. Configure the Stable Repository
-
-Add the official **Stable** release channel:
+### Add the Stable repository
 
 ```bash
 echo -e 'Types: deb\nURIs: https://download.sublimetext.com/\nSuites: apt/stable/\nSigned-By: /etc/apt/keyrings/sublimehq-pub.asc' \
   | sudo tee /etc/apt/sources.list.d/sublime-text.sources
 ```
 
-> **Note:** This configuration uses the Stable channel, not the Dev channel.
-
-## 3. Update Package Lists
-
-Refresh APT package information:
+### Install Sublime Text
 
 ```bash
 sudo apt-get update
-```
-
-## 4. Install Sublime Text
-
-Install the editor:
-
-```bash
 sudo apt-get install sublime-text
 ```
 
-## 5. Verify the Installation
-
-Check the installed version:
+Verify the installation:
 
 ```bash
 subl --version
 ```
 
-If the command returns a version number, the Sublime Text command-line launcher is available.
+## 2. Install the C++ Compiler
 
-## 6. Launch Sublime Text
-
-Open Sublime Text from the terminal:
+Install `g++` and essential build tools:
 
 ```bash
-subl
+sudo apt update
+sudo apt install build-essential
 ```
 
-Open the current directory as a project:
+Verify the compiler:
 
 ```bash
+g++ --version
+```
+
+Check the available C++17 support:
+
+```bash
+g++ -std=c++17 -dM -E -x c++ /dev/null | grep __cplusplus
+```
+
+## 3. Create a CP Workspace
+
+Create a dedicated directory for your practice problems:
+
+```bash
+mkdir -p ~/CP
+cd ~/CP
+```
+
+Create a sample problem directory:
+
+```bash
+mkdir -p ~/CP/Practice
+cd ~/CP/Practice
+touch main.cpp input.txt output.txt
 subl .
 ```
 
-Open a specific file:
+Recommended structure:
 
-```bash
-subl filename.txt
+```text
+CP/
+└── Practice/
+    ├── main.cpp
+    ├── input.txt
+    └── output.txt
 ```
 
-You can also launch Sublime Text from the Ubuntu application menu.
+Keep `input.txt` and `output.txt` in the same directory as the source file when using the build system below.
 
-## 7. Update Sublime Text
+## 4. Configure the C++17 CP Build System
 
-Since Sublime Text is installed through APT, update it using:
+A custom build system compiles your C++ source, runs the resulting executable and redirects standard input/output through text files.
 
-```bash
-sudo apt-get update
-sudo apt-get install --only-upgrade sublime-text
+### Create the build system
+
+1. Open Sublime Text.
+2. Go to **Tools → Build System → New Build System**.
+3. Replace the default content with the following configuration.
+4. Save it as `CP-C++17.sublime-build` in the suggested `User` package directory.
+5. Select **Tools → Build System → CP-C++17**.
+
+### Build system configuration
+
+```json
+{
+    "shell_cmd": "g++ -std=c++17 -O2 -Wall -Wextra \"$file\" -o \"$file_path/$file_base_name\" && \"$file_path/$file_base_name\" < \"$file_path/input.txt\" > \"$file_path/output.txt\"",
+    "working_dir": "$file_path",
+    "selector": "source.c++",
+    "file_regex": "^(.*?):([0-9]+):([0-9]+): (.*)$"
+}
 ```
 
-To upgrade all installed packages:
+### How it works
 
-```bash
-sudo apt-get upgrade
+- `-std=c++17`: enables C++17.
+- `-O2`: enables compiler optimizations.
+- `-Wall -Wextra`: enables useful compiler warnings.
+- `"$file"`: the current C++ source file.
+- `input.txt`: supplies standard input.
+- `output.txt`: receives standard output.
+- `&&`: runs the executable only if compilation succeeds.
+
+**Run the program:** Open your `.cpp` file and press `Ctrl+B`.
+
+**Important:** This build system expects both text files to exist in the source directory. Compiler errors appear in the build panel. Runtime error messages written to standard error remain in the build output; standard output is redirected to `output.txt`.
+
+## 5. Test the Build System
+
+Add the following to `main.cpp`:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int a, b;
+    cin >> a >> b;
+
+    cout << a + b << '\n';
+
+    return 0;
+}
 ```
 
-## 8. Uninstall Sublime Text
+Put this in `input.txt`:
 
-Remove the application:
-
-```bash
-sudo apt-get remove sublime-text
+```text
+10 20
 ```
 
-To remove the application and its system-wide package configuration:
+Press `Ctrl+B`. The expected content of `output.txt` is:
 
-```bash
-sudo apt-get purge sublime-text
+```text
+30
 ```
 
-Optionally, remove the repository configuration and signing key:
+## 6. Add a Competitive Programming C++ Snippet
 
-```bash
-sudo rm /etc/apt/sources.list.d/sublime-text.sources
-sudo rm /etc/apt/keyrings/sublimehq-pub.asc
-sudo apt-get update
+Snippets save repetitive typing by inserting commonly used C++ templates.
+
+### Open the snippets directory
+
+In Sublime Text, choose:
+
+**Tools → Developer → New Snippet...**
+
+Replace the default snippet with the following:
+
+```xml
+<snippet>
+    <content><![CDATA[
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+using ull = unsigned long long;
+using pii = pair<int, int>;
+using vi = vector<int>;
+
+#define all(x) (x).begin(), (x).end()
+
+void solve() {
+    $0
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int t = 1;
+    // cin >> t;
+
+    while (t--) {
+        solve();
+    }
+
+    return 0;
+}
+]]></content>
+    <tabTrigger>cp</tabTrigger>
+    <scope>source.c++</scope>
+    <description>Competitive Programming Template</description>
+</snippet>
 ```
 
-> **Warning:** Removing the repository and signing key also removes the APT configuration used for future Sublime Text updates.
+Save it as `cp.sublime-snippet` in the `User` package directory.
 
-## Useful Commands
+### Use the snippet
 
-| Task | Command |
+1. Open a C++ file.
+2. Type `cp`.
+3. Press `Tab`.
+
+The full CP template will be inserted. The cursor will be positioned inside `solve()`.
+
+**Note:** Uncomment `cin >> t;` when the problem contains multiple test cases. Keep it commented for single-test-case problems.
+
+## 7. Add Useful C++ Snippets
+
+Create additional snippets using **Tools → Developer → New Snippet...** and save them in the same `User` package directory.
+
+### Fast I/O — `fastio.sublime-snippet`
+
+```xml
+<snippet>
+    <content><![CDATA[
+ios::sync_with_stdio(false);
+cin.tie(nullptr);
+]]></content>
+    <tabTrigger>fastio</tabTrigger>
+    <scope>source.c++</scope>
+    <description>Fast Input/Output</description>
+</snippet>
+```
+
+### For Loop — `fori.sublime-snippet`
+
+```xml
+<snippet>
+    <content><![CDATA[
+for (int i = 0; i < $1; ++i) {
+    $0
+}
+]]></content>
+    <tabTrigger>fori</tabTrigger>
+    <scope>source.c++</scope>
+    <description>Indexed For Loop</description>
+</snippet>
+```
+
+### Long Long — `ll.sublime-snippet`
+
+```xml
+<snippet>
+    <content><![CDATA[
+long long
+]]></content>
+    <tabTrigger>ll</tabTrigger>
+    <scope>source.c++</scope>
+    <description>Long Long Type</description>
+</snippet>
+```
+
+### Test Case Loop — `testcase.sublime-snippet`
+
+```xml
+<snippet>
+    <content><![CDATA[
+int t;
+cin >> t;
+while (t--) {
+    solve();
+}
+]]></content>
+    <tabTrigger>testcase</tabTrigger>
+    <scope>source.c++</scope>
+    <description>Multiple Test Cases</description>
+</snippet>
+```
+
+To use any snippet, type its trigger and press `Tab`.
+
+## 8. Locate Sublime Text User Settings
+
+For reference, Sublime Text's Linux user data directory is generally:
+
+```text
+~/.config/sublime-text/Packages/User/
+```
+
+List its contents:
+
+```bash
+ls -la ~/.config/sublime-text/Packages/User/
+```
+
+You can also open the directory in the file manager:
+
+```bash
+xdg-open ~/.config/sublime-text/Packages/User/
+```
+
+The `User` directory is where your custom build system, snippets and personal preferences are stored.
+
+## 9. Recommended Daily Workflow
+
+1. Create a folder for a problem.
+2. Open that folder in Sublime Text.
+3. Create a `.cpp` file along with `input.txt` and `output.txt`.
+4. Type `cp` and press `Tab` to insert the template.
+5. Write and test your solution using the sample input.
+6. Press `Ctrl+B` to compile and run.
+7. Check the result in `output.txt`.
+8. Copy the final solution to the online judge and submit it.
+
+## 10. Troubleshooting
+
+| Problem | What to check |
 |---|---|
-| Check version | `subl --version` |
-| Launch editor | `subl` |
-| Open current directory | `subl .` |
-| Update package lists | `sudo apt-get update` |
-| Upgrade Sublime Text | `sudo apt-get install --only-upgrade sublime-text` |
+| `g++: command not found` | Install `build-essential`. |
+| `Ctrl+B` uses the wrong compiler | Select `CP-C++17` from Tools → Build System. |
+| `input.txt` not found | Create it beside the `.cpp` file. |
+| `output.txt` is empty | Check compilation and execution errors in the build panel. |
+| Snippet does not expand | Check the file extension, snippet scope and trigger. |
+| Previous executable remains after a failed compile | Check the build panel; the old binary may still exist, but it will not run when compilation fails. |
 
 ## Official Resources
 
-- [Sublime Text Website](https://www.sublimetext.com/)
-- [Official Linux Installation Instructions](https://www.sublimetext.com/docs/linux_repositories.html)
-- [Sublime Text Documentation](https://www.sublimetext.com/docs/)
+- [Sublime Text](https://www.sublimetext.com/)
+- [Linux Repository Installation](https://www.sublimetext.com/docs/linux_repositories.html)
+- [Sublime Text Build Systems](https://www.sublimetext.com/docs/build_systems.html)
+- [Sublime Text Snippets](https://www.sublimetext.com/docs/snippets.html)
+- [GCC Documentation](https://gcc.gnu.org/onlinedocs/)
 
 ---
 
-**Setup status:** Documented for the Sublime Text Stable installation workflow on Ubuntu.
+**Repository:** `ubuntu-sublime-text-setup`
 
-**Maintained by:** [shajidul-sobuj](https://github.com/shajidul-sobuj)
+**Purpose:** Document a reproducible Sublime Text and C++17 workflow for Competitive Programming on Ubuntu.
